@@ -1,4 +1,6 @@
-﻿using System;
+﻿using OfficeOpenXml;
+using OfficeOpenXml.Style;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -7,6 +9,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using TournamentScheduler.Common;
+
+//ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
 namespace TournamentScheduler.SchedulerControl
 {
@@ -51,6 +55,7 @@ namespace TournamentScheduler.SchedulerControl
 
 		public ICommand AddTeamCommand { get; private set; }
 		public ICommand RemoveTeamCommand { get; private set; }
+		public ICommand GenerateTournamentCommand { get; private set; }
 
 		private void SetCommands()
 		{
@@ -72,6 +77,13 @@ namespace TournamentScheduler.SchedulerControl
                 ByesCount = CalculateByes(_count);
 				SetByesList();
             });
+
+			GenerateTournamentCommand = new RelayCommand<object>(x =>
+			{
+                Random rng = new Random();
+				List<Team> teams = _teamsList.ToList().OrderBy(_ =>rng.Next()).ToList();
+				GenerateTournament(teams, "Test.xlsx");
+			});
 		}
 
 		private int CalculateByes(int count)
@@ -94,7 +106,65 @@ namespace TournamentScheduler.SchedulerControl
             }
         }
 
-		public Teams()
+		private void GenerateTournament(List<Team> teams, string filename)
+		{
+			if (!filename.EndsWith(".xlsx")) filename += ".xlsx";
+			ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+			var p = new ExcelPackage(new System.IO.FileInfo(filename));
+			var ws = p.Workbook.Worksheets.Add("Tournament");
+			char x = 'A';
+			int prevMax = 0;
+			int y = 1;
+			int r2Teams = ((teams.Count - _byesCount) / 2);
+			int remainingGames = (r2Teams + _byesCount) / 2; 
+            if (_byesCount > r2Teams) y = ((_byesCount - r2Teams) * 2) + 2;
+			else if (_byesCount > 0) y = 2;
+
+            for (int i = _byesCount; i < teams.Count; i++) 
+			{
+				string pos = x.ToString() + y.ToString();
+				ws.Cells[pos].Value = teams[i].Name;
+				y += 2;
+			}
+			prevMax = y;
+
+			x++;
+
+			if(_byesCount > 0)
+            {
+                y = 1;
+				bool team = true;
+				for(int i = 0; i < _byesCount; i++)
+				{
+					string pos = x.ToString() + y.ToString();
+					if(_byesCount - i <= r2Teams)
+					{
+						if (team)
+						{
+							ws.Cells[pos].Value = teams[i].Name;
+							team = !team;
+						} 
+						else
+						{
+							ws.Cells[pos].Style.Fill.PatternType = ExcelFillStyle.Solid;
+							ws.Cells[pos].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGreen);
+							i--;
+							team = !team;
+						}
+					}
+					else
+                    {
+                        ws.Cells[pos].Value = teams[i].Name;
+                    }
+
+					y += 2;
+				}
+			}
+
+			p.Save();
+		}
+
+        public Teams()
 		{
 			TeamsList = new ReadOnlyObservableCollection<Team>(_teamsList);
 			ByesList = new ReadOnlyObservableCollection<Team>(_byesList);

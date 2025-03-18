@@ -16,7 +16,7 @@
             <StackPanel Orientation="Horizontal">
                 <Button Content="Undo"/>
                 <Button Content="Redo" Margin="5, 0"/>
-                <Button Content="Generate"/>
+                <Button Content="Generate" Command="{Binding DataContext.GenerateTournamentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
             </StackPanel>
         </Grid>
         <Grid Grid.Row="1">
@@ -25,77 +25,11 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <Grid Grid.Column="0">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition />
-                        <RowDefinition Height="32"/>
-                    </Grid.RowDefinitions>
-                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Background="{StaticResource Editor.Window.GrayBrush3}" Grid.Row="0">
-                        <ItemsControl ItemsSource="{Binding TeamsList}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Grid>
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="{Binding Name}" Style="{DynamicResource LightTextBlockStyle}"/>
-                                            <Button Content="Remove" Margin="20, 0" Focusable="False" Command="{Binding DataContext.RemoveTeamCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                    CommandParameter="{Binding }"/>
-                                        </StackPanel>
-                                    </Grid>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
-                    <Grid Height="32" Grid.Row="1">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition />
-                            <ColumnDefinition Width="90"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBox Margin="5, 0, 0, 0" Width="Auto" Grid.Column="0" x:Name="NewTeamName"/>
-                        <Button Content="Add" Margin="20, 0" Grid.Column="1" Command="{Binding DataContext.AddTeamCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
-                                CommandParameter="{Binding Text, ElementName=NewTeamName}"/>
-                    </Grid>
-                </Grid>
+                <local:TeamControl/>
             </Grid>
             <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Left" VerticalAlignment="Stretch" Background="Transparent"/>
             <Grid Grid.Column="1" Margin="5, 0 , 0, 0" MinWidth="250">
-                <StackPanel Orientation="Vertical" Background="{StaticResource Editor.Window.GrayBrush3}">
-                    <TextBlock Text="{Binding Count, StringFormat='Number of Teams: {0}'}" Style="{DynamicResource LightTextBlockStyle}"/>
-                    <TextBlock Text="{Binding ByesCount, StringFormat='Number of Byes: {0}'}" Style="{DynamicResource LightTextBlockStyle}"/>
-                    <TextBlock Text="Teams in current byes:" Margin="0, 10, 0, 0">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock" BasedOn="{StaticResource LightTextBlockStyle}">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding ByesCount}" Value="0">
-                                        <Setter Property="Visibility" Value="Hidden" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
-                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Grid.Row="0">
-                        <ItemsControl ItemsSource="{Binding ByesList}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Grid>
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="{Binding Name}" Style="{DynamicResource LightTextBlockStyle}"/>
-                                        </StackPanel>
-                                    </Grid>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
-                </StackPanel>
+                <local:StatsControl/>
             </Grid>
         </Grid>
     </Grid>
