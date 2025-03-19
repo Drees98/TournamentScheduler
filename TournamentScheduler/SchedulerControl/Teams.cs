@@ -7,6 +7,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using TournamentScheduler.Common;
 
@@ -62,7 +64,7 @@ namespace TournamentScheduler.SchedulerControl
 			AddTeamCommand = new RelayCommand<object>(x => {
 				if(string.IsNullOrWhiteSpace(x.ToString())) return;
 				Team team = new Team(x.ToString());
-				if (!_teamsList.Any(x => x.Name == team.Name))
+				if (!_teamsList.Any(y => y.Name == team.Name))
 				{
 					_teamsList.Add(team);
 					Count++;
@@ -111,22 +113,30 @@ namespace TournamentScheduler.SchedulerControl
 			if (!filename.EndsWith(".xlsx")) filename += ".xlsx";
 			ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 			var p = new ExcelPackage(new System.IO.FileInfo(filename));
-			var ws = p.Workbook.Worksheets.Add("Tournament");
+			ExcelWorksheet ws;
+			try
+			{
+				ws = p.Workbook.Worksheets.Add("Tournament");
+			}
+			catch{ 
+				ws = p.Workbook.Worksheets[0];
+			}
 			char x = 'A';
-			int prevMax = 0;
 			int y = 1;
 			int r2Teams = ((teams.Count - _byesCount) / 2);
 			int remainingGames = (r2Teams + _byesCount) / 2; 
             if (_byesCount > r2Teams) y = ((_byesCount - r2Teams) * 2) + 2;
 			else if (_byesCount > 0) y = 2;
+			Queue<int> prevRoundy = new Queue<int>();
+            Queue<int> newRoundy = new Queue<int>(prevRoundy);
 
             for (int i = _byesCount; i < teams.Count; i++) 
 			{
 				string pos = x.ToString() + y.ToString();
 				ws.Cells[pos].Value = teams[i].Name;
+				newRoundy.Enqueue(y);
 				y += 2;
 			}
-			prevMax = y;
 
 			x++;
 
@@ -143,22 +153,58 @@ namespace TournamentScheduler.SchedulerControl
 						{
 							ws.Cells[pos].Value = teams[i].Name;
 							team = !team;
-						} 
+                            prevRoundy.Enqueue(y);
+                        } 
 						else
 						{
 							ws.Cells[pos].Style.Fill.PatternType = ExcelFillStyle.Solid;
 							ws.Cells[pos].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGreen);
 							i--;
 							team = !team;
-						}
+							newRoundy.Dequeue();
+							newRoundy.Dequeue();
+                            prevRoundy.Enqueue(y);
+                        }
 					}
 					else
                     {
                         ws.Cells[pos].Value = teams[i].Name;
+						prevRoundy.Enqueue(y);
                     }
 
 					y += 2;
 				}
+
+				while(newRoundy.Count > 0)
+				{
+                    int y1 = newRoundy.Dequeue();
+                    int y2 = newRoundy.Dequeue();
+                    int y3 = (y1 + y2) / 2;
+                    string pos = x.ToString() + y3.ToString();
+                    prevRoundy.Enqueue(y3);
+                    ws.Cells[pos].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    ws.Cells[pos].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGreen);
+                }
+				newRoundy = new Queue<int>(prevRoundy);
+			}
+
+			x++;
+
+			while(newRoundy.Count > 1)
+			{
+				prevRoundy = new Queue<int>(newRoundy);
+				newRoundy.Clear();
+				while(prevRoundy.Count > 0)
+				{
+					int y1 = prevRoundy.Dequeue();
+					int y2 = prevRoundy.Dequeue();
+					int y3 = (y1 + y2) / 2;
+                    string pos = x.ToString() + y3.ToString();
+					newRoundy.Enqueue(y3);
+                    ws.Cells[pos].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    ws.Cells[pos].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGreen);
+                }
+				x++;
 			}
 
 			p.Save();

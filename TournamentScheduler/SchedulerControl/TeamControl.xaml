@@ -6,7 +6,8 @@
       xmlns:local="clr-namespace:TournamentScheduler.SchedulerControl"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800">
-
+    <UserControl.InputBindings>
+    </UserControl.InputBindings>
 
     <Grid>
         <Grid.RowDefinitions>
@@ -25,7 +26,7 @@
                         <Grid>
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="{Binding Name}" Style="{DynamicResource LightTextBlockStyle}"/>
-                                <Button Content="Remove" Margin="20, 0" Focusable="False" Command="{Binding DataContext.RemoveTeamCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                <Button Content="Remove" Margin="20, 1" Focusable="False" Command="{Binding DataContext.RemoveTeamCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                     CommandParameter="{Binding }"/>
                             </StackPanel>
                         </Grid>
@@ -40,7 +41,7 @@
             </Grid.ColumnDefinitions>
             <TextBox Margin="5, 0, 0, 0" Width="Auto" Grid.Column="0" x:Name="NewTeamName"/>
             <Button Content="Add" Margin="20, 0" Grid.Column="1" Command="{Binding DataContext.AddTeamCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
-                                CommandParameter="{Binding Text, ElementName=NewTeamName}"/>
+                                CommandParameter="{Binding Text, ElementName=NewTeamName}" IsDefault="True"/>
         </Grid>
     </Grid>
 </UserControl>
